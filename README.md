@@ -50,6 +50,12 @@ The constructor method, used to launch omxplayer with a source.
 
 - `initialVolume` (optional): The initial volume, omxplayer will start with this value (in millibels). If left blank will default to 0.
 
+- `winPos` (optional): Set position of video window. Should be in one of the following formats: `'x1 y1 x2 y2'` or `x1,y1,x2,y2`. Consider pixel format for `x` and `y` values.
+  + x1 - margin left.
+  + y1 - margin top.
+  + x2 - width.
+  + y2 - height.
+
 ### player.newSource(*source*, *[output]*, *[loop]*, *[initialVolume]*)
 
 Starts playback of a new source, the arguments are identical to those of the `Omx` constructor method described above. If a file is currently playing, ends this playback and begins the new source.
