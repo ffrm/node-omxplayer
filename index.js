@@ -15,7 +15,7 @@ let ALLOWED_OUTPUTS = ['hdmi', 'local', 'both', 'alsa'];
 // ----- Functions ----- //
 
 // Creates an array of arguments to pass to omxplayer.
-function buildArgs (source, givenOutput, loop, initialVolume, showOsd) {
+function buildArgs (source, givenOutput, loop, initialVolume, showOsd, winPos) {
 	let output = '';
 
 	if (givenOutput) {
@@ -45,6 +45,10 @@ function buildArgs (source, givenOutput, loop, initialVolume, showOsd) {
 	// Handle the initial volume argument, if provided
 	if (Number.isInteger(initialVolume)) {
 		args.push('--vol', initialVolume);
+	}
+
+	if (typeof winPos === 'string' && /^(\w{1,}\,){3}\d$/.test(winPos)) {
+		args.push('--win', winPos);
 	}
 
 	return args;
@@ -81,9 +85,9 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 	}
 
 	// Spawns the omxplayer process.
-	function spawnPlayer (src, out, loop, initialVolume, showOsd) {
+	function spawnPlayer (src, out, loop, initialVolume, showOsd, winPos) {
 
-		let args = buildArgs(src, out, loop, initialVolume, showOsd);
+		let args = buildArgs(src, out, loop, initialVolume, showOsd, winPos);
 		console.log('args for omxplayer:', args);
 		let omxProcess = spawn('omxplayer', args);
 		open = true;
@@ -113,7 +117,7 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 	// ----- Setup ----- //
 
 	if (source) {
-		player = spawnPlayer(source, output, loop, initialVolume, showOsd);
+		player = spawnPlayer(source, output, loop, initialVolume, showOsd, winPos);
 	}
 
 	// ----- Methods ----- //
@@ -123,13 +127,13 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 
 		if (open) {
 
-			player.on('close', () => { player = spawnPlayer(src, out, loop, initialVolume, showOsd); });
+			player.on('close', () => { player = spawnPlayer(src, out, loop, initialVolume, showOsd, winPos); });
 			player.removeListener('close', updateStatus);
 			writeStdin('q');
 
 		} else {
 
-			player = spawnPlayer(src, out, loop, initialVolume, showOsd);
+			player = spawnPlayer(src, out, loop, initialVolume, showOsd, winPos);
 
 		}
 
@@ -164,7 +168,7 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 	});
 
 	// ----- Handle unhandled process ending ----- //
-	
+
 	const forceQuit = () => omxplayer.quit();
 	const exit = () => process.exit();
 
