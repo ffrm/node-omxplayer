@@ -163,6 +163,18 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 		get: () => { return open; }
 	});
 
+	// ----- Handle unhandled process ending ----- //
+	
+	const forceQuit = () => omxplayer.quit();
+	const exit = () => process.exit();
+
+	process
+		.on('exit', forceQuit)
+		.on('SIGINT', exit)
+		.on('SIGUSR1', exit)
+		.on('SIGUSR2', exit)
+		.on('uncaughtException', exit);
+
 	// ----- Return Object ----- //
 
 	return omxplayer;
