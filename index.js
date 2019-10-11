@@ -58,7 +58,7 @@ function buildArgs (source, givenOutput, loop, initialVolume, showOsd, winPos) {
 
 // ----- Omx Class ----- //
 
-function Omx (source, output, loop, initialVolume, showOsd) {
+function Omx (source, output, loop, initialVolume, showOsd, winPos) {
 
 	// ----- Local Vars ----- //
 
@@ -123,7 +123,7 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 	// ----- Methods ----- //
 
 	// Restarts omxplayer with a new source.
-	omxplayer.newSource = (src, out, loop, initialVolume, showOsd) => {
+	omxplayer.newSource = (src, out, loop, initialVolume, showOsd, winPos) => {
 
 		if (open) {
 
