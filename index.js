@@ -35,7 +35,7 @@ function buildArgs (source, givenOutput, loop, initialVolume, showOsd, winPos) {
 		osd = showOsd;
 	}
 
-	let args = [source, '-o', output, '--blank', osd ? '' : '--no-osd'];
+	let args = [source, '-o', output, osd ? '' : '--no-osd'];
 
 	// Handle the loop argument, if provided
 	if (loop) {
