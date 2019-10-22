@@ -47,7 +47,7 @@ function buildArgs (source, givenOutput, loop, initialVolume, showOsd, winPos) {
 		args.push('--vol', initialVolume);
 	}
 
-	if (typeof winPos === 'string' && /^(\w{1,}\,){3}\d\{1,}$/.test(winPos)) {
+	if (typeof winPos === 'string' && /^(\d{1,}\,){3}\d{1,}$/.test(winPos)) {
 		args.push('--win', winPos);
 	}
 
