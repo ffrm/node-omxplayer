@@ -169,7 +169,8 @@ function Omx (source, output, loop, initialVolume, showOsd, winPos) {
 
 	// ----- Handle unhandled process ending ----- //
 
-	const forceQuit = () => omxplayer.quit();
+	// Immediately closes the spawned player process before exit.
+	const forceQuit = () => player && player.kill();
 	const exit = () => process.exit();
 
 	process
