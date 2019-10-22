@@ -15,7 +15,7 @@ let ALLOWED_OUTPUTS = ['hdmi', 'local', 'both', 'alsa'];
 // ----- Functions ----- //
 
 // Creates an array of arguments to pass to omxplayer.
-function buildArgs (source, givenOutput, loop, initialVolume, showOsd) {
+function buildArgs (source, givenOutput, loop, initialVolume, showOsd, winPos) {
 	let output = '';
 
 	if (givenOutput) {
@@ -35,7 +35,7 @@ function buildArgs (source, givenOutput, loop, initialVolume, showOsd) {
 		osd = showOsd;
 	}
 
-	let args = [source, '-o', output, '--blank', osd ? '' : '--no-osd'];
+	let args = [source, '-o', output, osd ? '' : '--no-osd'];
 
 	// Handle the loop argument, if provided
 	if (loop) {
@@ -47,6 +47,10 @@ function buildArgs (source, givenOutput, loop, initialVolume, showOsd) {
 		args.push('--vol', initialVolume);
 	}
 
+	if (typeof winPos === 'string' && /^(\w{1,}\,){3}\d\{1,}$/.test(winPos)) {
+		args.push('--win', winPos);
+	}
+
 	return args;
 
 }
@@ -54,7 +58,7 @@ function buildArgs (source, givenOutput, loop, initialVolume, showOsd) {
 
 // ----- Omx Class ----- //
 
-function Omx (source, output, loop, initialVolume, showOsd) {
+function Omx (source, output, loop, initialVolume, showOsd, winPos) {
 
 	// ----- Local Vars ----- //
 
@@ -81,9 +85,9 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 	}
 
 	// Spawns the omxplayer process.
-	function spawnPlayer (src, out, loop, initialVolume, showOsd) {
+	function spawnPlayer (src, out, loop, initialVolume, showOsd, winPos) {
 
-		let args = buildArgs(src, out, loop, initialVolume, showOsd);
+		let args = buildArgs(src, out, loop, initialVolume, showOsd, winPos);
 		console.log('args for omxplayer:', args);
 		let omxProcess = spawn('omxplayer', args);
 		open = true;
@@ -113,23 +117,23 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 	// ----- Setup ----- //
 
 	if (source) {
-		player = spawnPlayer(source, output, loop, initialVolume, showOsd);
+		player = spawnPlayer(source, output, loop, initialVolume, showOsd, winPos);
 	}
 
 	// ----- Methods ----- //
 
 	// Restarts omxplayer with a new source.
-	omxplayer.newSource = (src, out, loop, initialVolume, showOsd) => {
+	omxplayer.newSource = (src, out, loop, initialVolume, showOsd, winPos) => {
 
 		if (open) {
 
-			player.on('close', () => { player = spawnPlayer(src, out, loop, initialVolume, showOsd); });
+			player.on('close', () => { player = spawnPlayer(src, out, loop, initialVolume, showOsd, winPos); });
 			player.removeListener('close', updateStatus);
 			writeStdin('q');
 
 		} else {
 
-			player = spawnPlayer(src, out, loop, initialVolume, showOsd);
+			player = spawnPlayer(src, out, loop, initialVolume, showOsd, winPos);
 
 		}
 
@@ -162,6 +166,19 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 	Object.defineProperty(omxplayer, 'running', {
 		get: () => { return open; }
 	});
+
+	// ----- Handle unhandled process ending ----- //
+
+	// Immediately closes the spawned player process before exit.
+	const forceQuit = () => player && player.kill();
+	const exit = () => process.exit();
+
+	process
+		.on('exit', forceQuit)
+		.on('SIGINT', exit)
+		.on('SIGUSR1', exit)
+		.on('SIGUSR2', exit)
+		.on('uncaughtException', exit);
 
 	// ----- Return Object ----- //
 
