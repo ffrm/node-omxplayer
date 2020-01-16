@@ -11,23 +11,37 @@ let EventEmitter = require('events');
 // The permitted audio outputs, local means via the 3.5mm jack.
 let ALLOWED_OUTPUTS = ['hdmi', 'local', 'both', 'alsa'];
 
+let ALLOWED_ASPECT_MODES = ['stretch', 'letterbox', 'fill'];
+
+let ALLOWED_ALIGNMENTS = ['left', 'center'];
 
 // ----- Functions ----- //
 
 // Creates an array of arguments to pass to omxplayer.
-function buildArgs (source, givenOutput, loop, initialVolume, showOsd, winPos) {
-	let output = '';
+function buildArgs (source, {
+	output,
+	loop,
+	volume,
+	showOsd,
+	win,
+	aspectMode,
+  subtitles,
+  align,
+  fontSize,
+  ghostBox,
+} = {}) {
+	let out = '';
 
-	if (givenOutput) {
+	if (output) {
 
-		if (ALLOWED_OUTPUTS.indexOf(givenOutput) === -1) {
-			throw new Error(`Output ${givenOutput} not allowed.`);
+		if (ALLOWED_OUTPUTS.indexOf(output) === -1) {
+			throw new Error(`Output ${output} not allowed.`);
 		}
 
-		output = givenOutput;
+		out = output;
 
 	} else {
-		output = 'local';
+		out = 'local';
 	}
 
 	let osd = false;
@@ -35,7 +49,7 @@ function buildArgs (source, givenOutput, loop, initialVolume, showOsd, winPos) {
 		osd = showOsd;
 	}
 
-	let args = [source, '-o', output, osd ? '' : '--no-osd'];
+	let args = [source, '-o', out, osd ? '' : '--no-osd'];
 
 	// Handle the loop argument, if provided
 	if (loop) {
@@ -43,22 +57,63 @@ function buildArgs (source, givenOutput, loop, initialVolume, showOsd, winPos) {
 	}
 
 	// Handle the initial volume argument, if provided
-	if (Number.isInteger(initialVolume)) {
-		args.push('--vol', initialVolume);
+	if (Number.isInteger(volume)) {
+		args.push('--vol', volume);
 	}
 
-	if (typeof winPos === 'string' && /^(\d{1,}\,){3}\d{1,}$/.test(winPos)) {
-		args.push('--win', winPos);
+	// Handle custom window position/size, if provided
+	if (typeof win === 'string' && /^(\d{1,}\,){3}\d{1,}$/.test(win)) {
+		args.push('--win', win);
+	}
+
+	// Handle video aspect mode, if provided
+	if (aspectMode) {
+		if (ALLOWED_ASPECT_MODES.indexOf(aspectMode) === -1) {
+			throw new Error(`Aspect mode ${aspectMode} not allowed.`);
+		}
+		args.push('--aspect mode', aspectMode);
+	}
+
+	// Handle subtitle text align, if provided
+	if (align) {
+		if (ALLOWED_ALIGNMENTS.indexOf(align) === -1) {
+			throw new Error(`Subtitle alignment ${align} not allowed.`);
+		}
+		args.push('--align', align);
+	}
+
+	// Add subtitle path, if provided
+	if (subtitles) {
+		args.push('--subtitles', subtitles);
+	}
+
+	// Set custom subtitle font size, if provided
+	if (Number.isInteger(fontSize)) {
+		args.push('--font-size', fontSize);
+	}
+	
+	// Enable or disable subtitle ghost box, if provided
+  if (typeof ghostBox === 'boolean' && ghostBox === false) {
+		args.push('--no-ghost-box');
 	}
 
 	return args;
-
 }
 
 
 // ----- Omx Class ----- //
-
-function Omx (source, output, loop, initialVolume, showOsd, winPos) {
+function Omx (source, {
+	output,
+	loop,
+	volume,
+	showOsd,
+	win,
+	aspectMode,
+  subtitles,
+  align,
+  fontSize,
+  ghostBox,
+} = {}) {
 
 	// ----- Local Vars ----- //
 
@@ -85,9 +140,9 @@ function Omx (source, output, loop, initialVolume, showOsd, winPos) {
 	}
 
 	// Spawns the omxplayer process.
-	function spawnPlayer (src, out, loop, initialVolume, showOsd, winPos) {
+	function spawnPlayer (src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox } = {}) {
 
-		let args = buildArgs(src, out, loop, initialVolume, showOsd, winPos);
+		let args = buildArgs(src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox });
 		console.log('args for omxplayer:', args);
 		let omxProcess = spawn('omxplayer', args);
 		open = true;
@@ -117,23 +172,23 @@ function Omx (source, output, loop, initialVolume, showOsd, winPos) {
 	// ----- Setup ----- //
 
 	if (source) {
-		player = spawnPlayer(source, output, loop, initialVolume, showOsd, winPos);
+		player = spawnPlayer(source, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox });
 	}
 
 	// ----- Methods ----- //
 
 	// Restarts omxplayer with a new source.
-	omxplayer.newSource = (src, out, loop, initialVolume, showOsd, winPos) => {
+	omxplayer.newSource = (src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox }) => {
 
 		if (open) {
 
-			player.on('close', () => { player = spawnPlayer(src, out, loop, initialVolume, showOsd, winPos); });
+			player.on('close', () => { player = spawnPlayer(src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox }); });
 			player.removeListener('close', updateStatus);
 			writeStdin('q');
 
 		} else {
 
-			player = spawnPlayer(src, out, loop, initialVolume, showOsd, winPos);
+			player = spawnPlayer(src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox });
 
 		}
 
@@ -170,7 +225,11 @@ function Omx (source, output, loop, initialVolume, showOsd, winPos) {
 	// ----- Handle unhandled process ending ----- //
 
 	// Immediately closes the spawned player process before exit.
-	const forceQuit = () => player && player.kill();
+	const forceQuit = () => {
+		omxplayer.quit();
+		if (player) player.kill()
+	};
+	
 	const exit = () => process.exit();
 
 	process

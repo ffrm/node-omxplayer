@@ -4,27 +4,47 @@ declare module 'node-omxplayer' {
 	export = Omx;
 }
 
+interface NodeOmxPlayerOptionalParams {
+	/**
+	 * 	@param output: The audio output, if left blank will default to 'local', can be one of: "local", "hdmi", "both"
+	 * 	@param loop: Loop state, if set to true, will loop file if it is seekable. If left blank will default to false.
+	 * 	@param volume: The initial volume, omxplayer will start with this value (in millibels). If left blank will default to 0.
+	 * 	@param win: Set position of video window. 'x1 y1 x2 y2' or x1,y1,x2,y2 pattern.
+	 * 	@param showOsd: If should display status information on screen.
+	 * 	@param aspectMode: Default is stretch if win is specified, letterbox otherwise.
+	 * 	@param subtitles: External subtitles in UTF-8 srt format.
+	 * 	@param align: Subtitle alignment, accepts 'center' or 'left' (default: left).
+	 * 	@param fontSize: Font size in 1/1000 screen height (default: 55).
+	 * 	@param ghostBox: If must show semitransparent boxes behind subtitles.
+	 */
+	output?: String,
+	loop?: Boolean,
+	volume?: Number,
+	win?: String,
+	showOsd?: Boolean,
+	aspectMode?: String,
+	subtitles?: String,
+	align?: String,
+	fontSize?: Number,
+	ghostBox?: Boolean,
+}
+
 interface NodeOmxPlayerStatic {
 	/**
 	 * The constructor method, used to launch omxplayer with a source.
 	 * @param source (optional): The playback source, any audio or video file (or stream) that omxplayer is capable of playing. If left blank, the player will initialise and wait for a source to be added later with the newSource method.
-	 * @param output (optional): The audio output, if left blank will default to 'local', can be one of: "local", "hdmi", "both"
-	 * @param loop (optional): Loop state, if set to true, will loop file if it is seekable. If left blank will default to false.
-	 * @param initialVolume (optional): The initial volume, omxplayer will start with this value (in millibels). If left blank will default to 0.
-	 * @param winPos (optional): Set position of video window. 'x1 y1 x2 y2' or x1,y1,x2,y2 pattern.
+	 * @param options (optional): List of custom options
 	 */
-	(source?: String, output?: String, loop?: Boolean, initialVolume?: Number, showOsd?: Boolean, winPos?: String): NodeOmxPlayer;
+	(source?: String, options?: NodeOmxPlayerOptionalParams): NodeOmxPlayer;
 }
 
 interface NodeOmxPlayer extends Event {
 	/**
 	 * Starts playback of a new source, the arguments are identical to those of the Omx constructor method described above. If a file is currently playing, ends this playback and begins the new source.
 	 * @param source (optional): The playback source, any audio or video file (or stream) that omxplayer is capable of playing. If left blank, the player will initialise and wait for a source to be added later with the newSource method.
-	 * @param output (optional): The audio output, if left blank will default to 'local', can be one of: "local", "hdmi", "both"
-	 * @param loop (optional): Loop state, if set to true, will loop file if it is seekable. If left blank will default to false.
-	 * @param initialVolume (optional): The initial volume, omxplayer will start with this value (in millibels). If left blank will default to 0.
+	 * @param options (optional): List of custom options
 	 */
-	newSource(source: String, output?: String, loop?: Boolean, initialVolume?: Number): void;
+	newSource(source: String, options?: NodeOmxPlayerOptionalParams): void;
 
 	/**
 	 * Resumes playback.

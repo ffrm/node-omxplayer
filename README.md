@@ -48,13 +48,25 @@ The constructor method, used to launch omxplayer with a source.
 
     **Warning**: As stated above, if you quit node before quitting the player, a zombie process may be created. If this occurs when the loop option is in place, the `omxplayer` process may run indefinitely.
 
-- `initialVolume` (optional): The initial volume, omxplayer will start with this value (in millibels). If left blank will default to 0.
+- `volume` (optional): The initial volume, omxplayer will start with this value (in millibels). If left blank will default to 0.
 
-- `winPos` (optional): Set position of video window. Should be in one of the following formats: `'x1 y1 x2 y2'` or `x1,y1,x2,y2`. Consider pixel format for `x` and `y` values.
-  + x1 - margin left.
-  + y1 - margin top.
-  + x2 - width.
-  + y2 - height.
+- `win` (optional): Set position of video window. Should be in one of the following formats: `'x0 y0 x1 y1'` or `x0,y0,x1,y1`. Consider pixel format for `x` and `y` values.
+  + x0 - x axis start position.
+  + y0 - y axis starting position.
+  + x1 - x axis end position.
+  + y1 - y axis end position.
+
+- `showOsd` (optional): If should display status information on screen.
+
+- `aspectMode` (optional): Default is stretch if win is specified, letterbox otherwise.
+
+- `subtitles` (optional): External subtitles in UTF-8 srt format.
+
+- `align` (optional): Subtitle alignment, accepts 'center' or 'left' (default: left).
+
+- `fontSize` (optional): Font size in 1/1000 screen height (default: 55).
+
+- `ghostBox` (optional): If must show semitransparent boxes behind subtitles.
 
 ### player.newSource(*source*, *[output]*, *[loop]*, *[initialVolume]*)
 
