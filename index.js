@@ -71,7 +71,7 @@ function buildArgs(source, {
 		if (ALLOWED_ASPECT_MODES.indexOf(aspectMode) === -1) {
 			throw new Error(`Aspect mode ${aspectMode} not allowed.`);
 		}
-		args.push('--aspect mode', aspectMode);
+		args.push('--aspect-mode', aspectMode);
 	}
 
 	// Handle subtitle text align, if provided
