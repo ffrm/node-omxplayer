@@ -18,17 +18,17 @@ let ALLOWED_ALIGNMENTS = ['left', 'center'];
 // ----- Functions ----- //
 
 // Creates an array of arguments to pass to omxplayer.
-function buildArgs (source, {
+function buildArgs(source, {
 	output,
 	loop,
 	volume,
 	showOsd,
 	win,
 	aspectMode,
-  subtitles,
-  align,
-  fontSize,
-  ghostBox,
+	subtitles,
+	align,
+	fontSize,
+	ghostBox,
 } = {}) {
 	let out = '';
 
@@ -91,9 +91,9 @@ function buildArgs (source, {
 	if (Number.isInteger(fontSize)) {
 		args.push('--font-size', fontSize);
 	}
-	
+
 	// Enable or disable subtitle ghost box, if provided
-  if (typeof ghostBox === 'boolean' && ghostBox === false) {
+	if (typeof ghostBox === 'boolean' && ghostBox === false) {
 		args.push('--no-ghost-box');
 	}
 
@@ -102,17 +102,17 @@ function buildArgs (source, {
 
 
 // ----- Omx Class ----- //
-function Omx (source, {
+function Omx(source, {
 	output,
 	loop,
 	volume,
 	showOsd,
 	win,
 	aspectMode,
-  subtitles,
-  align,
-  fontSize,
-  ghostBox,
+	subtitles,
+	align,
+	fontSize,
+	ghostBox,
 } = {}) {
 
 	// ----- Local Vars ----- //
@@ -124,7 +124,7 @@ function Omx (source, {
 	// ----- Local Functions ----- //
 
 	// Marks player as closed.
-	function updateStatus () {
+	function updateStatus() {
 
 		open = false;
 		omxplayer.emit('close');
@@ -132,7 +132,7 @@ function Omx (source, {
 	}
 
 	// Emits an error event, with a given message.
-	function emitError (message) {
+	function emitError(message) {
 
 		open = false;
 		omxplayer.emit('error', message);
@@ -140,9 +140,31 @@ function Omx (source, {
 	}
 
 	// Spawns the omxplayer process.
-	function spawnPlayer (src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox } = {}) {
+	function spawnPlayer(src, {
+		output,
+		loop,
+		volume,
+		showOsd,
+		win,
+		aspectMode,
+		subtitles,
+		align,
+		fontSize,
+		ghostBox
+	} = {}) {
 
-		let args = buildArgs(src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox });
+		let args = buildArgs(src, {
+			output,
+			loop,
+			volume,
+			showOsd,
+			win,
+			aspectMode,
+			subtitles,
+			align,
+			fontSize,
+			ghostBox
+		});
 		console.log('args for omxplayer:', args);
 		let omxProcess = spawn('omxplayer', args);
 		open = true;
@@ -159,7 +181,7 @@ function Omx (source, {
 	}
 
 	// Simulates keypress to provide control.
-	function writeStdin (value) {
+	function writeStdin(value) {
 
 		if (open) {
 			player.stdin.write(value);
@@ -172,54 +194,148 @@ function Omx (source, {
 	// ----- Setup ----- //
 
 	if (source) {
-		player = spawnPlayer(source, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox });
+		player = spawnPlayer(source, {
+			output,
+			loop,
+			volume,
+			showOsd,
+			win,
+			aspectMode,
+			subtitles,
+			align,
+			fontSize,
+			ghostBox
+		});
 	}
 
 	// ----- Methods ----- //
 
 	// Restarts omxplayer with a new source.
-	omxplayer.newSource = (src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox }) => {
+	omxplayer.newSource = (src, {
+		output,
+		loop,
+		volume,
+		showOsd,
+		win,
+		aspectMode,
+		subtitles,
+		align,
+		fontSize,
+		ghostBox
+	}) => {
 
 		if (open) {
 
-			player.on('close', () => { player = spawnPlayer(src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox }); });
+			player.on('close', () => {
+				player = spawnPlayer(src, {
+					output,
+					loop,
+					volume,
+					showOsd,
+					win,
+					aspectMode,
+					subtitles,
+					align,
+					fontSize,
+					ghostBox
+				});
+			});
 			player.removeListener('close', updateStatus);
 			writeStdin('q');
 
 		} else {
 
-			player = spawnPlayer(src, { output, loop, volume, showOsd, win, aspectMode, subtitles, align, fontSize, ghostBox });
+			player = spawnPlayer(src, {
+				output,
+				loop,
+				volume,
+				showOsd,
+				win,
+				aspectMode,
+				subtitles,
+				align,
+				fontSize,
+				ghostBox
+			});
 
 		}
 
 	};
 
-	omxplayer.play = () => { writeStdin('p'); };
-	omxplayer.pause = () => { writeStdin('p'); };
-	omxplayer.volUp = () => { writeStdin('+'); };
-	omxplayer.volDown = () => { writeStdin('-'); };
-	omxplayer.fastFwd = () => { writeStdin('>'); };
-	omxplayer.rewind = () => { writeStdin('<'); };
-	omxplayer.fwd30 =() => { writeStdin('\u001b[C'); };
-	omxplayer.back30 = () => { writeStdin('\u001b[D'); };
-	omxplayer.fwd600 = () => { writeStdin('\u001b[A'); };
-	omxplayer.back600 = () => { writeStdin('\u001b[B'); };
-	omxplayer.quit = () => { writeStdin('q'); };
-	omxplayer.subtitles = () => { writeStdin('s'); };
-	omxplayer.info = () => { writeStdin('z'); };
-	omxplayer.incSpeed = () => { writeStdin('1'); };
-	omxplayer.decSpeed = () => { writeStdin('2'); };
-	omxplayer.prevChapter = () => { writeStdin('i'); };
-	omxplayer.nextChapter = () => { writeStdin('o'); };
-	omxplayer.prevAudio = () => { writeStdin('j'); };
-	omxplayer.nextAudio = () => { writeStdin('k'); };
-	omxplayer.prevSubtitle = () => { writeStdin('n'); };
-	omxplayer.nextSubtitle = () => { writeStdin('m'); };
-	omxplayer.decSubDelay = () => { writeStdin('d'); };
-	omxplayer.incSubDelay = () => { writeStdin('f'); };
+	omxplayer.play = () => {
+		writeStdin('p');
+	};
+	omxplayer.pause = () => {
+		writeStdin('p');
+	};
+	omxplayer.volUp = () => {
+		writeStdin('+');
+	};
+	omxplayer.volDown = () => {
+		writeStdin('-');
+	};
+	omxplayer.fastFwd = () => {
+		writeStdin('>');
+	};
+	omxplayer.rewind = () => {
+		writeStdin('<');
+	};
+	omxplayer.fwd30 = () => {
+		writeStdin('\u001b[C');
+	};
+	omxplayer.back30 = () => {
+		writeStdin('\u001b[D');
+	};
+	omxplayer.fwd600 = () => {
+		writeStdin('\u001b[A');
+	};
+	omxplayer.back600 = () => {
+		writeStdin('\u001b[B');
+	};
+	omxplayer.quit = () => {
+		writeStdin('q');
+	};
+	omxplayer.subtitles = () => {
+		writeStdin('s');
+	};
+	omxplayer.info = () => {
+		writeStdin('z');
+	};
+	omxplayer.incSpeed = () => {
+		writeStdin('1');
+	};
+	omxplayer.decSpeed = () => {
+		writeStdin('2');
+	};
+	omxplayer.prevChapter = () => {
+		writeStdin('i');
+	};
+	omxplayer.nextChapter = () => {
+		writeStdin('o');
+	};
+	omxplayer.prevAudio = () => {
+		writeStdin('j');
+	};
+	omxplayer.nextAudio = () => {
+		writeStdin('k');
+	};
+	omxplayer.prevSubtitle = () => {
+		writeStdin('n');
+	};
+	omxplayer.nextSubtitle = () => {
+		writeStdin('m');
+	};
+	omxplayer.decSubDelay = () => {
+		writeStdin('d');
+	};
+	omxplayer.incSubDelay = () => {
+		writeStdin('f');
+	};
 
 	Object.defineProperty(omxplayer, 'running', {
-		get: () => { return open; }
+		get: () => {
+			return open;
+		}
 	});
 
 	// ----- Handle unhandled process ending ----- //
@@ -229,7 +345,7 @@ function Omx (source, {
 		omxplayer.quit();
 		if (player) player.kill()
 	};
-	
+
 	const exit = () => process.exit();
 
 	process
